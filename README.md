@@ -1,0 +1,1 @@
+# apim-aoai-ptu-paygo-auto-switching
