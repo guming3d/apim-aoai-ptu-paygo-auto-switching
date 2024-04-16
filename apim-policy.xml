@@ -1,0 +1,22 @@
+<policies>
+ <inbound> 
+   <base />
+   <cache-lookup-value key="azure-openai-deployment-utilization" variable-name="ptu-utils" default-value="0" caching-type="internal"/> 
+   <choose> 
+      <when condition="@(context.Variables.ContainsKey("ptu-utils") && double.Parse((string)context.Variables["ptu-utils"]) < 90)"> 
+        <set-backend-service backend-id="ptu-backend" /> 
+      </when>
+      <otherwise> 
+        <set-backend-service backend-id="payg-backend" /> 
+      </otherwise>
+   </choose> 
+</inbound>
+<outbound> 
+   <base />
+   <choose> 
+       <when condition="@(context.Response.Headers.ContainsKey("azure-openai-deployment-utilization"))"> 
+           <cache-store-value key="azure-openai-deployment-utilization" value="@((string)context.Response.Headers["azure-openai-deployment-utilization"].FirstOrDefault())" duration="5" caching-type="internal"/> 
+       </when> 
+    </choose>
+</outbound>
+</policies>
