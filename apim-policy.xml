@@ -8,14 +8,14 @@
         <choose>
             <when condition="@(double.Parse(context.Variables.GetValueOrDefault<string>("ptu-utils", "0.00%").TrimEnd('%')) < 90)">
                 <set-header name="api-key" exists-action="override">
-                    <value>e4e21ca2919448c187653d1976eeab64</value>
+                    <value>YOUR PTU API KEY</value>
                 </set-header>
                 <!--example :<set-backend-service base-url="https://gbb-ea-openai-swedencentral-02.openai.azure.com/openai/deployments/gpt-4-0613-ptu/chat/completions?api-version=2024-02-15-preview" -->
                 <set-backend-service base-url="<YOUR PTU URL ADDRESS>" />
             </when>
             <otherwise>
                 <set-header name="api-key" exists-action="override">
-                    <value>e4e21ca2919448c187653d1976eeab64</value>
+                    <value>YOUR PAYGO API KEY</value>
                 </set-header>
                 <!--example:<set-backend-service base-url="https://gbb-ea-openai-swedencentral-02.openai.azure.com/openai/deployments/gpt-4-0613-paygo/chat/completions?api-version=2024-02-15-preview" /> -->
                 <set-backend-service base-url="<YOUR PAYGO URL ADDRESS>" />
