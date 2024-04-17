@@ -1,22 +1,39 @@
 <policies>
- <inbound> 
-   <base />
-   <cache-lookup-value key="azure-openai-deployment-utilization" variable-name="ptu-utils" default-value="0" caching-type="internal"/> 
-   <choose> 
-      <when condition="@(context.Variables.ContainsKey("ptu-utils") && double.Parse((string)context.Variables["ptu-utils"]) < 90)"> 
-        <set-backend-service backend-id="ptu-backend" /> 
-      </when>
-      <otherwise> 
-        <set-backend-service backend-id="payg-backend" /> 
-      </otherwise>
-   </choose> 
-</inbound>
-<outbound> 
-   <base />
-   <choose> 
-       <when condition="@(context.Response.Headers.ContainsKey("azure-openai-deployment-utilization"))"> 
-           <cache-store-value key="azure-openai-deployment-utilization" value="@((string)context.Response.Headers["azure-openai-deployment-utilization"].FirstOrDefault())" duration="5" caching-type="internal"/> 
-       </when> 
-    </choose>
-</outbound>
+    <inbound>
+        <base />
+        <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+        </set-header>
+        <cache-lookup-value key="azure-openai-deployment-utilization" variable-name="ptu-utils" default-value="0.00%" caching-type="internal" />
+        <choose>
+            <when condition="@(double.Parse(context.Variables.GetValueOrDefault<string>("ptu-utils", "0.00%").TrimEnd('%')) < 90)">
+                <set-header name="api-key" exists-action="override">
+                    <value>e4e21ca2919448c187653d1976eeab64</value>
+                </set-header>
+                <!--example :<set-backend-service base-url="https://gbb-ea-openai-swedencentral-02.openai.azure.com/openai/deployments/gpt-4-0613-ptu/chat/completions?api-version=2024-02-15-preview" -->
+                <set-backend-service base-url="<YOUR PTU URL ADDRESS>" />
+            </when>
+            <otherwise>
+                <set-header name="api-key" exists-action="override">
+                    <value>e4e21ca2919448c187653d1976eeab64</value>
+                </set-header>
+                <!--example:<set-backend-service base-url="https://gbb-ea-openai-swedencentral-02.openai.azure.com/openai/deployments/gpt-4-0613-paygo/chat/completions?api-version=2024-02-15-preview" /> -->
+                <set-backend-service base-url="<YOUR PAYGO URL ADDRESS>" />
+            </otherwise>
+        </choose>
+    </inbound>
+    <outbound>
+        <base />
+        <choose>
+            <when condition="@(context.Response.Headers.ContainsKey("azure-openai-deployment-utilization"))">
+                <cache-store-value key="azure-openai-deployment-utilization" value="@((string)context.Response.Headers["azure-openai-deployment-utilization"].FirstOrDefault())" duration="30" caching-type="internal" />
+            </when>
+        </choose>
+    </outbound>
+    <backend>
+        <base />
+    </backend>
+    <on-error>
+        <base />
+    </on-error>
 </policies>
